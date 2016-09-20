@@ -440,6 +440,18 @@ class z.main.App
   # Debugging
   ###############################################################################
 
+  # Add bot to active conversation.
+  add_bot: (bot_name = 'Otto', create_conversation = true) =>
+    Promise.resolve()
+    .then =>
+      if create_conversation
+        @repository.conversation.create_new_conversation [], bot_name
+    .then (conversation_et) =>
+      conversation_et ?= @repository.conversation.active_conversation()
+      bot = z.service.BackendBots[bot_name]
+      @repository.conversation.add_bots conversation_et, bot.provider, bot.service
+      amplify.publish z.event.WebApp.CONVERSATION.SHOW, conversation_et
+
   # Disable debugging on any environment.
   disable_debugging: ->
     z.config.LOGGER.OPTIONS.domains['app.wire.com'] = -> 0
