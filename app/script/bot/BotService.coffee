@@ -25,11 +25,12 @@ class z.bot.BotService
     @url = "#{z.config.BOT_URL}"
     return @
 
-  fetch: (username, callback) ->
-    $.get "#{@url}#{username}/"
-    .done (data, textStatus, jqXHR) =>
-      @logger.log @logger.levels.INFO, "Bot found. service: #{data['result']['service']}, provider: #{data['result']['provider']}"
-      callback? data['result']
-    .fail (jqXHR, textStatus, errorThrown) =>
-      @logger.log @logger.levels.ERROR, 'Failed to fetch bot', errorThrown
-      callback?()
+  fetch_bot: (bot_name) ->
+    return new Promise (resolve, reject) =>
+      $.get "#{@url}#{bot_name}/"
+      .done (data, textStatus, jqXHR) =>
+        @logger.log @logger.levels.INFO, "Bot found. Service: #{data.result.service}, Provider: #{data.result.provider}"
+        resolve data.result
+      .fail (jqXHR, textStatus, errorThrown) =>
+        @logger.log @logger.levels.ERROR, 'Failed to fetch bot', errorThrown
+        reject new Error errorThrown

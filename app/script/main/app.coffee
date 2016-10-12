@@ -51,6 +51,7 @@ class z.main.App
     service = {}
 
     service.asset                   = new z.assets.AssetService @auth.client
+    service.bot                     = new z.bot.BotService()
     service.call                    = new z.calling.CallService @auth.client
     service.connect                 = new z.connect.ConnectService @auth.client
     service.connect_google          = new z.connect.ConnectGoogleService @auth.client
@@ -96,6 +97,7 @@ class z.main.App
       repository.links
     )
 
+    repository.bot                 = new z.bot.BotRepository @service.bot, repository.conversation
     repository.call_center         = new z.calling.CallCenter @service.call, repository.conversation, repository.user, repository.audio
     repository.event_tracker       = new z.tracking.EventTrackingRepository repository.user, repository.conversation
     repository.system_notification = new z.SystemNotification.SystemNotificationRepository repository.conversation
@@ -202,6 +204,8 @@ class z.main.App
       @view.loading.switch_message z.string.init_app_pre_loaded, true
       @telemetry.time_step z.telemetry.app_init.AppInitTimingsStep.APP_PRE_LOADED
       @logger.log @logger.levels.INFO, 'App pre-loading completed'
+      @_handle_url_params()
+    .then =>
       @_show_ui()
       @telemetry.time_step z.telemetry.app_init.AppInitTimingsStep.SHOWING_UI
       @telemetry.report()
@@ -222,6 +226,7 @@ class z.main.App
       @logger.log @logger.levels.DEBUG,
         "App reload: '#{is_reload}', Document referrer: '#{document.referrer}', Location: '#{window.location.href}'"
 
+      return
       if is_reload and error.type not in [z.client.ClientError::TYPE.MISSING_ON_BACKEND, z.client.ClientError::TYPE.NO_LOCAL_CLIENT]
         @auth.client.execute_on_connectivity().then -> window.location.reload false
       else if navigator.onLine
@@ -256,6 +261,13 @@ class z.main.App
           error = new Error "Loading self user failed: #{error}"
           @logger.log @logger.levels.ERROR, error.message
         reject error
+
+  # Handle URL params
+  _handle_url_params: ->
+    bot_name = z.util.get_url_parameter z.auth.URLParameter.BOT
+    if bot_name
+      @logger.log @logger.levels.INFO, "Found bot token '#{bot_name}'"
+      @repository.bot.add_bot bot_name
 
   ###
   Check whether the page has been reloaded.
@@ -440,18 +452,6 @@ class z.main.App
   ###############################################################################
   # Debugging
   ###############################################################################
-
-  # Add bot to active conversation.
-  add_bot: (bot_name = 'Otto', create_conversation = true) =>
-    Promise.resolve()
-    .then =>
-      if create_conversation
-        @repository.conversation.create_new_conversation [], bot_name
-    .then (conversation_et) =>
-      conversation_et ?= @repository.conversation.active_conversation()
-      bot = z.service.BackendBots[bot_name]
-      @repository.conversation.add_bots conversation_et, bot.provider, bot.service
-      amplify.publish z.event.WebApp.CONVERSATION.SHOW, conversation_et
 
   # Disable debugging on any environment.
   disable_debugging: ->
