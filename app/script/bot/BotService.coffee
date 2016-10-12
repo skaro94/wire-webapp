@@ -29,7 +29,6 @@ class z.bot.BotService
     return new Promise (resolve, reject) =>
       $.get "#{@url}#{bot_name}/"
       .done (data, textStatus, jqXHR) =>
-        @logger.log @logger.levels.INFO, "Bot found. Service: #{data.result.service}, Provider: #{data.result.provider}"
         resolve data.result
       .fail (jqXHR, textStatus, errorThrown) =>
         @logger.log @logger.levels.ERROR, 'Failed to fetch bot', errorThrown

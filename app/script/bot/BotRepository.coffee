@@ -30,8 +30,9 @@ class z.bot.BotRepository
     @bot_service.fetch_bot bot_name
     .then (result) =>
       bot_result = result
+      @logger.log @logger.levels.INFO, "Bot '#{bot_name}' found. Service: #bot_result.service}, Provider: #{bot_result.provider}", bot_result
       if create_conversation
-        @conversation_repository.create_new_conversation [], bot_name
+        @conversation_repository.create_new_conversation [], bot_result.name or bot_name
     .then (conversation_et) =>
       conversation_et ?= @conversation_repository.active_conversation()
       @conversation_repository.add_bots conversation_et, bot_result.provider, bot_result.service
