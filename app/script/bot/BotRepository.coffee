@@ -24,7 +24,7 @@ class z.bot.BotRepository
     @logger = new z.util.Logger 'z.bot.BotRepository', z.config.LOGGER.OPTIONS
 
   # Add bot to conversation.
-  add_bot: (bot_name = 'otto', create_conversation = true) =>
+  add_bot: (bot_name, create_conversation = true) =>
     bot_result = undefined
 
     @bot_service.fetch_bot bot_name
