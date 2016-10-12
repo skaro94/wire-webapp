@@ -26,10 +26,9 @@ class z.bot.BotService
     return @
 
   fetch_bot: (bot_name) ->
-    return new Promise (resolve, reject) =>
+    return new Promise (resolve) =>
       $.get "#{@url}#{bot_name}/"
       .done (data, textStatus, jqXHR) =>
         resolve data.result
       .fail (jqXHR, textStatus, errorThrown) =>
-        @logger.log @logger.levels.ERROR, 'Failed to fetch bot', errorThrown
-        reject new Error errorThrown
+        @logger.log @logger.levels.WARNING, "Could not find information for bot '#{bot_name}': #{errorThrown}"
